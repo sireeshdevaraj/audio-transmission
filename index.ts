@@ -2,44 +2,48 @@ const recordButton = document.getElementById("record-start")
 const stopButton = document.getElementById("record-stop")
 const chunks : Array<Blob> = [];
 
-
-const wss = new WebSocket("ws://localhost:6969")
+const LOCAL_IP = "..." // Get the local Ip with `ipconfig`, add the Ipv4
+const wss = new WebSocket(`wss://${LOCAL_IP}:6969`)
 
 if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-    console.log("getUserMedia supported.");
+  console.log("MESSAGE: getUserMedia supported.");
     navigator.mediaDevices
       .getUserMedia(
-        // constraints - only audio needed for this app
+        // constraints - only audio needed for this tool
         {
           audio: true,
         },
-      )
-  
+      )  
       // Success callback
       .then((stream) => {
-        var mediaRecorder = new MediaRecorder(stream);
+        let mediaRecorder = new MediaRecorder(stream);
         if (recordButton){
             recordButton.onclick = () => {
-                console.log("STARTED recording audio")
-                mediaRecorder.start(100);        
+                console.log("OPERATION: started recording audio");
+                mediaRecorder.start(100);
             }
             mediaRecorder.ondataavailable = (event) => {
-                wss.send(event.data)
-                chunks.push(event.data)
+                wss.send(event.data) // All the data would be handled on the server making it less heavy for long durations.
             }
         }
         if (stopButton){
             stopButton.onclick = () => {
                 mediaRecorder.stop()
+                console.log("OPERATION: stopping recording audio");
+                try{
+                  wss.send("close")
+                }catch(error){
+                  console.log("ERROR: sending close messsage",error)
+                } 
+                // Pause is not implemented yet, for now the default close would basically close and writes the data into a file.
             }
         }
-        console.log(mediaRecorder)
     })
   
       // Error callback
       .catch((err) => {
-        console.error(`The following getUserMedia error occurred: ${err}`);
+        console.error(`ERROR: The following getUserMedia error occurred: ${err}`);
       });
   } else {
-    console.log("getUserMedia not supported on your browser!");
+    console.log("MESSAGE: getUserMedia not supported on your browser!");
   }
