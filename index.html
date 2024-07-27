@@ -1,8 +1,42 @@
-<div>
+<!DOCTYPE html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+
+        body{
+           background-color: rgb(30, 29, 29);
+            height: 100vh;
+            width: 100vw;
+        }
+        .main{
+            position: absolute;
+            margin: auto;
+            text-align: center;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        h1{
+            color: azure;
+        }
+        button{
+            background-color: burlywood;
+            padding: 1rem;
+            font-size: larger;
+        }
+        @media only screen and (max-width: 600px) {
+            button{
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
     <body>
-        <h>RECORD</h>
-        <button id="record-start">START</button>
-        <button id="record-stop">STOP</button>
+        <div class="main">
+            <h1>RECORD</h1>
+            <button id="record-start">START</button>
+            <button id="record-stop">STOP</button>
+        </div>
         <script src="index.js"></script>
     </body>
-</div>
+</html>
