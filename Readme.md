@@ -1,5 +1,7 @@
 [WIP] transmitting audio through web sockets for a very weird use case.
 
+Good Readme is under construction.
+
 # Setup
 
 It takes a considerable amount of time if you are new to setting up self-signed certificates.
