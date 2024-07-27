@@ -1,32 +1,60 @@
-import {WebSocketServer} from 'ws';
-
+import { WebSocketServer } from 'ws';
+import { createServer } from 'https';
+import { readFileSync } from 'fs';
 const fs = require("node:fs");
-const wss = new WebSocketServer({port : 6969});
-let incomingBlob: Array<Blob> = [];
 
-async function writeBlobToAudioFile(blobArray: Array<Blob>) {
-  const t: any = new Blob(blobArray, { type: "audio/ogg; codecs=opus" });
-  console.log(t)
-  console.log(new Uint16Array(t))
-  fs.writeFileSync("test.wav", Buffer.from(new Uint8Array(await t.arrayBuffer())), (error : Error) => {
-      console.log("Error: in converting the blob array to audio file", error);
-  });
+const certificate_path_crt = "..."// "C:\\Users\\Nerd_directory\\selfsigned.crt"
+const certificate_key_path_pem = "..."// "C:\\Users\\Nerd_directory\\selfsigned.key"
 
+const server = createServer({
+  cert: readFileSync(certificate_path_crt),
+  key: readFileSync(certificate_key_path_pem)
+});
+const wss = new WebSocketServer({server});
+let incomingBlob: Array<Buffer> = [];
+
+async function writeBlobToAudioFile(blobArray: Array<Buffer>) {
+  if (blobArray.length == 0){
+    console.log("MESSAGE: Data is of 0 length, nothing written.")
+    return // Nothing to write to the file.
+  }
+  const t: Blob = new Blob(blobArray, { type: "audio/ogg; codecs=opus" });
+  const date = new Date()
+  const filename =   date.toDateString() + " " + date.getHours() + "-" + date.getMinutes() + "-" + date.getSeconds()
+  fs.writeFile(`./voice/${filename}.wav`, 
+              Buffer.from(new Uint8Array(await t.arrayBuffer())), 
+              {flag : "w+"},
+              (error : Error) => {
+                if (error) console.log("Error: in converting the blob array to audio file", error);
+                else console.log("OPERATION: wrote to the file", filename);
+              }
+  );
 }
 
-wss.on('connection', function connection(ws) {
-    console.log("Someone connected")
-    ws.on('error', console.error);
 
-    ws.on('message', function message(data : Blob) {
-      incomingBlob.push(data)
+wss.on('connection', function connection(ws) {
+    console.log("MESSAGE: someone connected")
+    
+    ws.on('error', (err : Error) => console.log(err));
+    
+    ws.on('message', async function message(data : Buffer) {
+      if (data.toString() === "close"){
+        console.log("MESSAGE: writing data to file")
+        await writeBlobToAudioFile(incomingBlob);
+        incomingBlob = [];
+      }      
+      else{
+        incomingBlob.push(data)
+      }
     });
 
     ws.on('close', async () => {
-      if (incomingBlob.length == 0){
-        return // Nothing to write to the file.
-      }
       await writeBlobToAudioFile(incomingBlob);
+      incomingBlob = []; // clean the array for new requests.
+      console.log("CLOSED: connection")
     })
-    ws.send('something');
+});
+
+server.listen(6969, () => {
+  console.log('WebSocket server running on wss://127.0.0.1:6969');
 });
