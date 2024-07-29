@@ -2,13 +2,19 @@
 
 Good Readme is under construction.
 
+# Use-case
+
+Most people do not prefer using their iPhone or AirPods for recording, but if you don't have a good microphone, they can still provide better voice quality. 
+
+This tool makes it really easy to record from your phone and seamlessly transmit the data to your computer.
+
 # Setup
 
 It takes a considerable amount of time if you are new to setting up self-signed certificates.
 
 We need to expose the localhost server to record it through your mobile.
 
-## Here are some pitfalls:
+## Need HTTPS because:
 
 You cannot use `MediaRecorder` on mobile without `HTTPS`, and we are not going to use a domain for a simple, unusual use case like this.
 
@@ -16,9 +22,15 @@ The best option would be to expose the server with a self-signed certificate. Th
 
 When using `HTTPS`, the browser does not allow communication over `WS`. We need to use `WSS`. Therefore, when creating the server, we are expected to use a self-signed key and certificate on the server as well.
 
-# Use-case
+# Run
 
-Most people do not prefer using their iPhone or AirPods for recording, but if you don't have a good microphone, they can still provide better voice quality. 
+```py
+python3 main.py # Serve's the index.html and exposes it with https
 
-This tool makes it really easy to record from your phone and seamlessly transmit the data to your computer.
+```
 
+```js
+node server.js // Web Socket server.
+```
+
+Audio files (.wav) will be stored in the voice directory. You can change it however you like.
